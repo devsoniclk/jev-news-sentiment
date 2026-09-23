@@ -70,36 +70,42 @@ def judge_article(title: str, summary: str) -> Optional[dict]:
         resp.raise_for_status()
         data = resp.json()
 
-        # Parse Jev response
-        decisions = data.get("decisions", data)
+        # Jev returns answers keyed by question name
+        answers = data.get("answers", {})
         result = {}
 
-        # Extract answers from Jev's response format
-        for q_key in ("asset", "sentiment", "material", "regulatory"):
-            q_data = decisions.get(q_key, {})
-            # Jev may return answer directly or nested
-            answer = q_data.get("answer", q_data.get("value", q_data))
-            result[q_key] = answer
+        # Extract asset from choice type
+        asset_q = answers.get("asset", {})
+        result["asset"] = asset_q.get("choice", "other")
 
-        # Map sentiment to numeric score
-        sentiment_map = {
-            "very-negative": 1.0,
-            "negative": 2.0,
-            "neutral": 3.0,
-            "positive": 4.0,
-            "very-positive": 5.0,
-        }
-        # Jev score type may return as string label
-        sent_raw = str(result.get("sentiment", "neutral")).lower().strip()
-        result["sentiment_score"] = sentiment_map.get(sent_raw, 3.0)
+        # Extract sentiment from score type — normalize to 1-5
+        sent_q = answers.get("sentiment", {})
+        raw_score = sent_q.get("score", 1.0)
+        num_criteria = len(body["questions"]["sentiment"]["criteria"])
+        max_idx = num_criteria - 1
+        if max_idx > 0:
+            result["sentiment_score"] = round(1.0 + (raw_score / max_idx) * 4.0, 2)
+        else:
+            result["sentiment_score"] = 3.0
 
-        # Normalize noul to bool
+        # Derive sentiment label from score
+        ss = result["sentiment_score"]
+        if ss <= 1.5:
+            result["sentiment"] = "very-negative"
+        elif ss <= 2.5:
+            result["sentiment"] = "negative"
+        elif ss <= 3.5:
+            result["sentiment"] = "neutral"
+        elif ss <= 4.5:
+            result["sentiment"] = "positive"
+        else:
+            result["sentiment"] = "very-positive"
+
+        # Extract noul type values (probability 0-1) → bool at 0.5 threshold
         for key in ("material", "regulatory"):
-            val = result.get(key)
-            if isinstance(val, str):
-                result[key] = val.lower() in ("true", "yes", "1")
-            elif isinstance(val, (int, float)):
-                result[key] = bool(val)
+            noul_q = answers.get(key, {})
+            prob = noul_q.get("noul", 0.0)
+            result[key] = prob >= 0.5
 
         return result
 

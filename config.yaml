@@ -22,6 +22,7 @@ jev:
   model: typesafe/jev-1.13
 
 sentiment:
+  max_articles: 20
   decay_hours: 24
   update_interval_seconds: 300
 
