@@ -1,0 +1,30 @@
+feeds:
+  - name: CoinDesk
+    url: https://www.coindesk.com/arc/outboundfeeds/rss/
+  - name: Cointelegraph
+    url: https://cointelegraph.com/rss
+  - name: Bitcoin Magazine
+    url: https://bitcoinmagazine.com/feed
+  - name: Decrypt
+    url: https://decrypt.co/feed
+  - name: The Block
+    url: https://www.theblock.co/rss.xml
+
+assets:
+  - BTC
+  - ETH
+  - SOL
+  - XRP
+  - other
+
+jev:
+  endpoint: https://openrouter.ai/api/alpha/decisions
+  model: typesafe/jev-1.13
+
+sentiment:
+  decay_hours: 24
+  update_interval_seconds: 300
+
+logging:
+  file: data/sentiment_log.jsonl
+  level: INFO
