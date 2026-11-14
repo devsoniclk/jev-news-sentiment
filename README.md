@@ -2,6 +2,29 @@
 
 Crypto news sentiment analysis powered by [Jev typed decisions](https://openrouter.ai/api/alpha/decisions).
 
+
+## 📰 Sentiment Intelligence Pipeline
+
+```mermaid
+flowchart LR
+    Feeds["News APIs, RSS Feeds, &
+CryptoPanic / Twitter Stream"] --> NLP["NLP Sentiment Pipeline
+(BERT / LLM Classifier)"]
+    
+    subgraph ScoringCore ["Sentiment Attribution"]
+        EntityExtraction["Asset & Entity Ticker Detection
+(BTC, ETH, SOL, Alts)"]
+        ImpactScoring["Urgency & Market Impact Score
+(-1.0 Extreme Bearish to +1.0 Extreme Bullish)"]
+        SpikeDetection["Breaking News Velocity & Spike Filter"]
+    end
+
+    NLP --> ScoringCore
+    ScoringCore --> Broadcast["Real-Time Signals -> Jev Decisions Engine"]
+```
+
+---
+
 ## What It Does
 
 1. **Fetches** crypto news from 5 RSS sources (CoinDesk, Cointelegraph, Bitcoin Magazine, Decrypt, The Block)
